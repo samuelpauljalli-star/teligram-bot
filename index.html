@@ -9,12 +9,14 @@
         rel="stylesheet">
     <style>
         :root {
-            --primary: #8b5cf6;
-            --secondary: #ec4899;
-            --accent: #06b6d4;
-            --bg: #030712;
-            --card-bg: rgba(17, 24, 39, 0.7);
-            --text: #f8fafc;
+            --primary: #c084fc;
+            --primary-glow: rgba(192, 132, 252, 0.4);
+            --secondary: #fb7185;
+            --accent: #22d3ee;
+            --bg: #020617;
+            --card-bg: rgba(15, 23, 42, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text: #f1f5f9;
         }
 
         * {
@@ -22,140 +24,170 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background: var(--bg);
+            background-color: var(--bg);
             color: var(--text);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            padding: 1rem;
             overflow-x: hidden;
             position: relative;
         }
 
-        /* Animated Background Gradients */
-        body::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at center, #1e1b4b 0%, transparent 50%),
-                radial-gradient(circle at top right, #312e81 0%, transparent 40%),
-                radial-gradient(circle at bottom left, #4c1d95 0%, transparent 40%);
-            animation: rotateBG 20s linear infinite;
-            z-index: -1;
+        /* --- MESH BACKGROUND --- */
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: #020617;
+            overflow: hidden;
         }
 
-        @keyframes rotateBG {
+        .blob {
+            position: absolute;
+            width: 65vmax;
+            height: 65vmax;
+            filter: blur(80px);
+            opacity: 0.35;
+            border-radius: 50%;
+            animation: move 25s infinite alternate ease-in-out;
+        }
+
+        .blob-1 {
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+            top: -20%;
+            left: -10%;
+            animation-duration: 35s;
+        }
+
+        .blob-2 {
+            background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
+            bottom: -15%;
+            right: -5%;
+            animation-duration: 30s;
+        }
+
+        .blob-3 {
+            background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+            top: 30%;
+            left: 20%;
+            width: 45vmax;
+            height: 45vmax;
+            animation-duration: 25s;
+        }
+
+        @keyframes move {
             0% {
-                transform: rotate(0deg);
+                transform: translate(0, 0) rotate(0deg) scale(1);
+            }
+
+            50% {
+                transform: translate(15%, 10%) rotate(180deg) scale(1.1);
             }
 
             100% {
-                transform: rotate(360deg);
+                transform: translate(0, 0) rotate(360deg) scale(1);
             }
         }
 
         .container {
             width: 100%;
-            max-width: 900px;
+            max-width: 1000px;
+            margin-top: 5vh;
             z-index: 1;
         }
 
         header {
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 4rem;
         }
 
         .developer-name {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 6rem;
-            letter-spacing: 12px;
-            background: linear-gradient(to right, #fff, #94a3b8, #fff);
+            font-size: clamp(3.5rem, 15vw, 7.5rem);
+            letter-spacing: clamp(8px, 3vw, 24px);
+            font-weight: 400;
+            background: linear-gradient(135deg, #fff 20%, #94a3b8 50%, #fff 80%);
             background-size: 200% auto;
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: shine 3s linear infinite, fadeInUp 1s ease-out;
-            margin-bottom: -10px;
-            line-height: 1;
+            animation: shine 5s linear infinite, fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+            line-height: 0.9;
         }
 
         h1 {
-            font-size: 3rem;
+            font-size: clamp(1.8rem, 6vw, 3.2rem);
             font-weight: 800;
-            background: linear-gradient(to right, var(--primary), var(--secondary), var(--accent));
-            background-size: 200% auto;
+            margin-top: 10px;
+            background: linear-gradient(to right, #fff, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradientMove 3s linear infinite;
         }
 
-        p.subtitle {
-            font-size: 1.2rem;
-            color: #94a3b8;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            margin-top: 10px;
-            opacity: 0.8;
-            animation: fadeIn 2s ease-in;
-        }
-
-        /* Server Status Indicator */
         .status-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 5px 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
-            font-size: 0.8rem;
-            margin-top: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 10px;
+            padding: 8px 18px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(10px);
+            border-radius: 100px;
+            font-size: 0.75rem;
+            margin-top: 1.5rem;
+            border: 1px solid var(--glass-border);
+            color: #94a3b8;
         }
 
         .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #64748b;
+            background: #475569;
         }
 
         .status-dot.online {
-            background: #22c55e;
-            box-shadow: 0 0 10px #22c55e;
+            background: #4ade80;
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.5);
         }
 
         .status-dot.offline {
-            background: #ef4444;
-            box-shadow: 0 0 10px #ef4444;
+            background: #fb7185;
+            box-shadow: 0 0 15px rgba(251, 113, 133, 0.5);
         }
 
         .search-box {
             background: var(--card-bg);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(30px);
             padding: 8px;
-            border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
             display: flex;
             gap: 10px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            margin-bottom: 40px;
-            animation: slideIn 1s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+            margin-bottom: 4rem;
+            transition: 0.4s;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--primary);
+            transform: translateY(-2px);
         }
 
         input {
             flex: 1;
             background: transparent;
             border: none;
-            padding: 20px 30px;
+            padding: 1.2rem 1.5rem;
             color: #fff;
             font-size: 1.1rem;
             outline: none;
@@ -165,106 +197,134 @@
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             border: none;
-            padding: 0 40px;
-            border-radius: 25px;
+            padding: 0 2rem;
+            border-radius: 18px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button.main-btn:hover {
+            transform: scale(1.03);
+            filter: brightness(1.1);
+            box-shadow: 0 0 20px var(--primary-glow);
         }
 
         .result-card {
             background: var(--card-bg);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(30px);
             border-radius: 32px;
-            padding: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2.5rem;
+            border: 1px solid var(--glass-border);
             display: none;
             flex-direction: column;
-            gap: 30px;
-            animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            gap: 2.5rem;
+            animation: slideUp 0.6s ease-out;
+            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.8);
         }
 
         .video-info {
             display: flex;
-            gap: 30px;
+            gap: 2rem;
             align-items: center;
         }
 
         .thumbnail-container {
-            border-radius: 20px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            flex-shrink: 0;
         }
 
         .thumbnail {
-            width: 240px;
-            height: 135px;
+            width: clamp(150px, 25vw, 250px);
+            aspect-ratio: 16/9;
             object-fit: cover;
+            display: block;
+        }
+
+        .video-details h2 {
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            line-height: 1.3;
+            color: #fff;
         }
 
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        .option-group {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 20px;
-            border-radius: 20px;
+            gap: 2.5rem;
         }
 
         .option-group h3 {
-            font-size: 1rem;
-            color: #6366f1;
-            margin-bottom: 15px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            letter-spacing: 2px;
+            margin-bottom: 1.2rem;
+            text-transform: uppercase;
         }
 
         .quality-buttons {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 12px;
         }
 
         .q-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #e2e8f0;
-            padding: 10px 18px;
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            color: #fff;
+            padding: 16px;
+            border-radius: 18px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: 0.3s;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
         }
 
         .q-btn:hover {
-            background: var(--primary);
+            border-color: var(--primary);
             transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.06);
         }
 
         .loading {
             display: none;
-            margin: 40px auto;
+            padding: 4rem;
+            text-align: center;
         }
 
         .pulse-loader {
             display: flex;
-            gap: 8px;
+            gap: 12px;
             justify-content: center;
         }
 
         .dot {
-            width: 15px;
-            height: 15px;
-            background: var(--primary);
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            animation: pulse 1.5s infinite;
+            background: var(--primary);
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+            background: var(--secondary);
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+            background: var(--accent);
         }
 
         @keyframes pulse {
 
             0%,
             100% {
-                transform: scale(0.5);
+                transform: scale(0.6);
                 opacity: 0.5;
             }
 
@@ -275,12 +335,6 @@
         }
 
         @keyframes shine {
-            to {
-                background-position: 200% center;
-            }
-        }
-
-        @keyframes gradientMove {
             to {
                 background-position: 200% center;
             }
@@ -298,33 +352,21 @@
             }
         }
 
-        @keyframes slideIn {
+        @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: scaleX(0.5);
+                transform: translateY(20px);
             }
 
             to {
                 opacity: 1;
-                transform: scaleX(1);
+                transform: translateY(0);
             }
         }
 
-        @keyframes bounceIn {
-            0% {
-                opacity: 0;
-                transform: scale(0.3);
-            }
-
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .developer-name {
-                font-size: 3.5rem;
+        @media (max-width: 850px) {
+            .options-grid {
+                grid-template-columns: 1fr;
             }
 
             .video-info {
@@ -332,18 +374,34 @@
                 text-align: center;
             }
 
-            .options-grid {
-                grid-template-columns: 1fr;
+            .thumbnail {
+                width: 100%;
+                max-width: 400px;
             }
+        }
 
+        @media (max-width: 600px) {
             .search-box {
                 flex-direction: column;
+                border-radius: 20px;
+            }
+
+            button.main-btn {
+                width: 100%;
+                padding: 1.2rem;
             }
         }
     </style>
 </head>
 
 <body>
+    <!-- DYNAMIC BACKGROUND -->
+    <div class="bg-mesh">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
     <div class="container">
         <header>
             <div class="developer-name">SAMUEL PAUL</div>
@@ -351,7 +409,7 @@
             <p class="subtitle">Next-Gen Media Extraction</p>
             <div class="status-badge">
                 <div id="statusDot" class="status-dot"></div>
-                <span id="statusText">Checking Backend...</span>
+                <span id="statusText">System Initializing...</span>
             </div>
         </header>
 
@@ -359,26 +417,27 @@
         <div id="fixModal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; backdrop-filter:blur(10px); color:white; justify-content:center; align-items:center; padding:20px;">
             <div
-                style="background:var(--card-bg); padding:40px; border-radius:30px; border:1px solid var(--primary); max-width:500px; text-align:center; box-shadow:0 0 50px rgba(139, 92, 246, 0.3);">
-                <h2 style="color:var(--secondary); margin-bottom:20px; font-size:2rem;">🛠️ Connect to Backend</h2>
-                <p style="margin-bottom:25px; line-height:1.6; color:#94a3b8;">Browsers block high-security sites
-                    (GitHub) from talking to local servers. Follow these 4 steps to enable downloading:</p>
+                style="background:var(--card-bg); padding:40px; border-radius:30px; border:1px solid var(--primary); max-width:500px; text-align:center;">
+                <h2 style="color:var(--secondary); margin-bottom:20px;">🛠️ Connection Required</h2>
+                <p style="margin-bottom:25px; line-height:1.6; color:#94a3b8;">Browsers block high-security connections
+                    to local servers. Follow these steps:</p>
                 <div
                     style="text-align:left; background:rgba(255,255,255,0.05); padding:20px; border-radius:15px; margin-bottom:25px;">
                     <p>1. Click the 🔓 <b>Lock icon</b> next to URL</p>
                     <p>2. Select ⚙️ <b>Site settings</b></p>
                     <p>3. Find ⚠️ <b>Insecure content</b></p>
                     <p>4. Change it to ✅ <b>Allow</b></p>
+                    <p><b>remove the link from " ? " to end </b></p>
+                    <p><b>like https://youtu.be/**********U </b></p>
                 </div>
-                <p style="color:var(--accent); font-weight:600; margin-bottom:20px;">Then Refresh the Page!</p>
                 <button onclick="document.getElementById('fixModal').style.display='none'" class="main-btn"
-                    style="height:50px; width:100%;">GOT IT</button>
+                    style="width:100%;">GOT IT</button>
             </div>
         </div>
 
         <div class="search-box">
-            <input type="text" id="videoUrl" placeholder="Drop your YouTube link here..." autocomplete="off">
-            <button class="main-btn" onclick="analyzeVideo()">ANALYZE NOW</button>
+            <input type="text" id="videoUrl" placeholder="Paste your link here..." autocomplete="off">
+            <button class="main-btn" onclick="analyzeVideo()">Analyze</button>
         </div>
 
         <div class="loading" id="loader">
@@ -387,7 +446,9 @@
                 <div class="dot"></div>
                 <div class="dot"></div>
             </div>
-            <p style="text-align: center; margin-top: 20px; color: #6366f1; font-weight: 600;">DECODING STREAM...</p>
+            <p
+                style="margin-top: 2rem; color: var(--primary); font-weight: 600; font-size: 0.9rem; letter-spacing: 2px;">
+                DECODING STREAM...</p>
         </div>
 
         <div class="result-card" id="resultCard">
@@ -397,17 +458,17 @@
                 </div>
                 <div class="video-details">
                     <h2 id="videoTitle">Processing...</h2>
-                    <p id="videoDuration" style="color: #6366f1; font-weight: 600;">00:00</p>
+                    <p id="videoDuration" style="color: var(--accent); font-weight: 600; margin-top: 5px;">00:00</p>
                 </div>
             </div>
 
             <div class="options-grid">
                 <div class="option-group">
-                    <h3>🎬 VIDEO MASTER</h3>
+                    <h3>🎬 Video Master</h3>
                     <div class="quality-buttons" id="videoQualities"></div>
                 </div>
                 <div class="option-group">
-                    <h3>🎶 AUDIO STUDIO</h3>
+                    <h3>🎶 Audio Studio</h3>
                     <div class="quality-buttons" id="audioQualities"></div>
                 </div>
             </div>
@@ -415,33 +476,25 @@
     </div>
 
     <script>
-        // SMART API DETECTION
-        // If the URL contains 'github.io', we warn the user they MUST allow Insecure Content
-        // because GitHub is HTTPS and local server is HTTP.
         const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
             ? ''
-            : 'http://localhost:5000'; // Change this to your server IP/Domain if running on a real server
+            : 'http://localhost:5000';
 
-        // Check if server is running
         async function checkServer() {
             const dot = document.getElementById('statusDot');
             const text = document.getElementById('statusText');
-
             try {
-                // Critical check for GitHub Pages / HTTPS hosting
                 if (window.location.protocol === 'https:' && API_URL.startsWith('http://localhost')) {
                     dot.className = 'status-dot offline';
-                    text.innerHTML = '<b style="color:#ef4444">⚠️ ACTION REQUIRED:</b> <a href="javascript:void(0)" onclick="showFixGuide()" style="color:#fbbf24; text-decoration:underline">Enable Local Connection</a>';
-                    showFixGuide(); // Automatically show the guide on HTTPS to help the user
+                    text.innerHTML = '<span style="color:#fb7185">Local Server Restricted</span> - <a href="javascript:void(0)" onclick="showFixGuide()" style="color:var(--accent)">Enable Fix</a>';
                     return;
                 }
-
                 const res = await fetch(API_URL + '/');
                 dot.className = 'status-dot online';
-                text.innerText = 'Server Online: Ready to Download';
+                text.innerText = 'Engine Active: Ready';
             } catch (e) {
                 dot.className = 'status-dot offline';
-                text.innerText = 'Server Offline: Run app.py locally';
+                text.innerText = 'Engine Offline: Run app.py';
             }
         }
 
@@ -477,21 +530,37 @@
 
                 const vCont = document.getElementById('videoQualities');
                 vCont.innerHTML = '';
-                ['360', '480', '720', '1080'].forEach(q => {
+
+                const videoOptions = [
+                    { label: '🎬 Best Quality', q: '1080', desc: 'Default' },
+                    { label: '💎 1080p Ultra', q: '1080', desc: 'Full HD' },
+                    { label: '📺 720p HD', q: '720', desc: 'HD Quality' },
+                    { label: '📱 480p SD', q: '480', desc: 'Mobile' }
+                ];
+
+                videoOptions.forEach(opt => {
                     const btn = document.createElement('button');
                     btn.className = 'q-btn';
-                    btn.innerText = q + 'p';
-                    btn.onclick = (e) => download(e, 'video', q, url);
+                    btn.innerHTML = `<div style="font-weight:600">${opt.label}</div><div style="font-size:0.75rem;opacity:0.6">${opt.desc}</div>`;
+                    btn.onclick = (e) => download(e, 'video', opt.q, url);
                     vCont.appendChild(btn);
                 });
 
                 const aCont = document.getElementById('audioQualities');
                 aCont.innerHTML = '';
-                [{ l: 'Standard', q: '128' }, { l: 'Pure HD', q: '320' }].forEach(item => {
+
+                const audioOptions = [
+                    { label: '🎵 High Quality', q: '320', desc: 'Best MP3' },
+                    { label: '� MP3 320K', q: '320', desc: 'Studio' },
+                    { label: '🎞️ MP4 Audio', q: '0', desc: 'Pure' },
+                    { label: '� Standard', q: '128', desc: '128K' }
+                ];
+
+                audioOptions.forEach(opt => {
                     const btn = document.createElement('button');
                     btn.className = 'q-btn';
-                    btn.innerText = item.l;
-                    btn.onclick = (e) => download(e, 'audio', item.q, url);
+                    btn.innerHTML = `<div style="font-weight:600">${opt.label}</div><div style="font-size:0.75rem;opacity:0.6">${opt.desc}</div>`;
+                    btn.onclick = (e) => download(e, 'audio', opt.q, url);
                     aCont.appendChild(btn);
                 });
 
@@ -499,26 +568,26 @@
                 card.style.display = 'flex';
                 card.scrollIntoView({ behavior: 'smooth', block: 'center' });
             } catch (err) {
-                alert('Analysis failed! Make sure app.py is running on your computer.');
+                alert('Analysis failed! Check if app.py is running.');
                 loader.style.display = 'none';
             }
         }
 
         async function download(event, mode, quality, url) {
-            const btn = event.target;
-            const originalText = btn.innerText;
-            btn.innerText = 'PREPARING...';
+            const btn = event.currentTarget;
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<div style="font-weight:600">⏳ Wait...</div><div style="font-size:0.7rem;opacity:0.6">Preparing</div>';
             btn.disabled = true;
 
             try {
                 window.location.href = `${API_URL}/api/download?mode=${mode}&quality=${quality}&url=${encodeURIComponent(url)}`;
                 setTimeout(() => {
-                    btn.innerText = originalText;
+                    btn.innerHTML = originalContent;
                     btn.disabled = false;
                 }, 8000);
             } catch (err) {
-                alert('System error during download.');
-                btn.innerText = originalText;
+                alert('Download error.');
+                btn.innerHTML = originalContent;
                 btn.disabled = false;
             }
         }
