@@ -4,6 +4,7 @@ import subprocess
 import yt_dlp
 import asyncio
 import threading
+import re
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_cors import CORS
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -34,7 +35,12 @@ HAS_FFMPEG = check_ffmpeg()
 # --- DOWNLOADING LOGIC ---
 
 def get_video_info(url):
-    ydl_opts = {'quiet': True, 'noplaylist': True}
+    ydl_opts = {
+        'quiet': True, 
+        'noplaylist': True,
+        'no_warnings': True,
+        'extract_flat': True,
+    }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
         return {
@@ -62,7 +68,6 @@ def download_media(url, mode, quality):
                 }],
             })
         else:
-            # FALLBACK: If no ffmpeg, just download best audio file as is (often .m4a or .webm)
             ydl_opts['format'] = 'bestaudio/best'
     else:
         if HAS_FFMPEG:
@@ -92,7 +97,7 @@ def download_media(url, mode, quality):
 
 # --- FLASK APP (WEB INTERFACE) ---
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.')
 CORS(app)
 
 @app.route('/')
@@ -103,9 +108,9 @@ def index():
 def analyze():
     data = request.json
     url = data.get('url')
+    if not url: return jsonify({'error': 'No URL'}), 400
     try:
-        info = get_video_info(url)
-        return jsonify(info)
+        return jsonify(get_video_info(url))
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
@@ -114,82 +119,78 @@ def web_download():
     mode = request.args.get('mode')
     quality = request.args.get('quality')
     url = request.args.get('url')
-    
     try:
         file_path = download_media(url, mode, quality)
-        if os.path.exists(file_path):
-            return send_file(os.path.abspath(file_path), as_attachment=True)
-        return "File not found", 404
+        return send_file(os.path.abspath(file_path), as_attachment=True)
     except Exception as e:
         return str(e), 500
 
 def run_flask():
-    app.run(port=5000, host='0.0.0.0', use_reloader=False)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(port=port, host='0.0.0.0', use_reloader=False)
 
 # --- TELEGRAM BOT LOGIC ---
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("👋 Premium Downloader Bot!\nSend a link to start.")
+    await update.message.reply_text("👋 Welcome! Send me a link to download.")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    url = update.message.text
-    if "youtube.com" in url or "youtu.be" in url:
+    if not update.message or not update.message.text: return
+    
+    url = re.search(r'(https?://\S+)', update.message.text)
+    if url:
+        link = url.group(1)
+        context.user_data['last_url'] = link
         keyboard = [[
-            InlineKeyboardButton("🎬 Video", callback_data=f"v_menu|{url}"),
-            InlineKeyboardButton("🎵 Audio", callback_data=f"a_menu|{url}")
+            InlineKeyboardButton("🎬 Video", callback_data="v_menu"),
+            InlineKeyboardButton("🎵 Audio", callback_data="a_menu")
         ]]
-        await update.message.reply_text("Choose Format:", reply_markup=InlineKeyboardMarkup(keyboard))
+        await update.message.reply_text(
+            f"✅ Link Detected!\nChoose format:",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+    else:
+        await update.message.reply_text("❌ Please send a valid link.")
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    data = query.data.split('|')
-    action = data[0]
-    url = data[-1]
+    action = query.data.split('|')[0]
+    url = context.user_data.get('last_url')
+    
+    if not url:
+        await query.answer("Please send the link again.", show_alert=True)
+        return
+
     await query.answer()
 
     if action == "v_menu":
         keyboard = [
-            [InlineKeyboardButton("360p", callback_data=f"dl|video|360|{url}"),
-             InlineKeyboardButton("720p", callback_data=f"dl|video|720|{url}"),
-             InlineKeyboardButton("1080p", callback_data=f"dl|video|1080|{url}")],
-            [InlineKeyboardButton("⬅️ Back", callback_data=f"back|{url}")]
+            [InlineKeyboardButton("360p", callback_data="dl|video|360"),
+             InlineKeyboardButton("720p", callback_data="dl|video|720"),
+             InlineKeyboardButton("1080p", callback_data="dl|video|1080")],
+            [InlineKeyboardButton("⬅️ Back", callback_data="back")]
         ]
         await query.edit_message_text("Select Video Quality:", reply_markup=InlineKeyboardMarkup(keyboard))
-
     elif action == "a_menu":
         keyboard = [
-            [InlineKeyboardButton("Standard Quality", callback_data=f"dl|audio|128|{url}")],
-            [InlineKeyboardButton("High Quality", callback_data=f"dl|audio|320|{url}")],
-            [InlineKeyboardButton("⬅️ Back", callback_data=f"back|{url}")]
+            [InlineKeyboardButton("Standard (128k)", callback_data="dl|audio|128")],
+            [InlineKeyboardButton("High (320k)", callback_data="dl|audio|320")],
+            [InlineKeyboardButton("⬅️ Back", callback_data="back")]
         ]
         await query.edit_message_text("Select Audio Quality:", reply_markup=InlineKeyboardMarkup(keyboard))
-
     elif action == "back":
-        keyboard = [[InlineKeyboardButton("🎬 Video", callback_data=f"v_menu|{url}"), InlineKeyboardButton("🎵 Audio", callback_data=f"a_menu|{url}")]]
+        keyboard = [[InlineKeyboardButton("🎬 Video", callback_data="v_menu"), InlineKeyboardButton("🎵 Audio", callback_data="a_menu")]]
         await query.edit_message_text("Choose Format:", reply_markup=InlineKeyboardMarkup(keyboard))
-
-    elif action == "dl":
-        mode = data[1]
-        quality = data[2]
+    elif action.startswith("dl"):
+        _, mode, quality = query.data.split('|')
         status = await query.edit_message_text(f"⏳ Downloading {mode}...")
         try:
-            if mode == 'audio' and not HAS_FFMPEG:
-                await query.message.reply_text("⚠️ FFmpeg is missing. Downloading as best available audio format (m4a/webm) instead of MP3.")
-            
             file_path = await asyncio.to_thread(download_media, url, mode, quality)
-            
             if os.path.exists(file_path):
-                file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
-                if file_size_mb > 50:
-                    await status.edit_text(f"⚠️ File too large for Telegram ({file_size_mb:.1f}MB).")
-                    return
-
                 await status.edit_text("📤 Uploading...")
                 with open(file_path, 'rb') as f:
-                    if mode == 'audio':
-                        await query.message.reply_audio(audio=f)
-                    else:
-                        await query.message.reply_video(video=f)
+                    if mode == 'audio': await query.message.reply_audio(audio=f)
+                    else: await query.message.reply_video(video=f)
                 await status.delete()
         except Exception as e:
             await query.message.reply_text(f"❌ Error: {str(e)}")
@@ -199,14 +200,9 @@ def run_bot():
     bot_app.add_handler(CommandHandler("start", start))
     bot_app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     bot_app.add_handler(CallbackQueryHandler(button_handler))
+    print("🤖 Telegram Bot: ACTIVE")
     bot_app.run_polling()
 
 if __name__ == '__main__':
-    # Start Flask thread
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.start()
-    
-    # Start Bot (main thread)
-    print("Web Server running at http://localhost:5000")
-    print("Telegram Bot is active...")
+    threading.Thread(target=run_flask, daemon=True).start()
     run_bot()
